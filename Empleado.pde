@@ -6,8 +6,9 @@ class Empleado{
   int tiempoDeContagio;
   int duracionIncubacion;
   Float probContagiar_se;
+  int sociabilidad;
   
-  public Empleado(int id, int estado, Float posX, Float posY, int tiempoDeContagio, int duracionIncubacion, Float probContagiar_se){
+  public Empleado(int id, int estado, Float posX, Float posY, int tiempoDeContagio, int duracionIncubacion, Float probContagiar_se, int sociabilidad){
     this.id = id;
     this.estado = estado;
     this.posX = posX;
@@ -15,5 +16,6 @@ class Empleado{
     this.tiempoDeContagio = tiempoDeContagio;
     this.duracionIncubacion = duracionIncubacion;
     this.probContagiar_se = probContagiar_se;
+    this.sociabilidad = sociabilidad;
   }
 }
