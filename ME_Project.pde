@@ -1,20 +1,49 @@
+/**
+*  UNIVERSIDAD NACIONAL DE COLOMBIA 2020-I  
+*
+*  Proyecto de Modelos Estocasticos y Simulacion en Computacion
+*  y Comunicaciones  
+*  
+*  Desarrollado por:
+    Johanathan Andres Leon Rodriguez
+    Jonathan Alexander Carrillo Cortes
+    Diego Felipe Rodriguez Chaparro
+    Carlos Alberto Nieto Tinoco
+    Cristian Yair Carreno Leon
+*
+*/
+
 import java.lang.Math;
 import java.util.Random;
 import java.util.*;
+
+// TODO: Variables a constantes
 
 int nIndividuos;
 int tiempo;
 List<Contacto> contactos = new ArrayList<Contacto>();
 List<Empleado> individuos = new ArrayList<Empleado>();
-float distanciaMax,distanciaMin;//distancias entre individuos
-float probSintomatico;//probabibilidad de que un individuo sea sintomatico
+Consts constantes = new Consts();
+
+// Distancia entre individuos
+float distanciaMax,distanciaMin;
+
+// Probabilidad de que un individuo sea sintomatico
+float probSintomatico;
 int tiempoDeRecuperacion; 
 int nInicialDeInfectados;
+
+// Variables que contienen el numero de individuos en las diferentes etapas
+// de la infeccion
 int susceptibles, preSintomaticos, infectadosSintomaticos, infectadosAsintomaticos, recuperadosAsintomaticos, enCuarentena =  0;
 
 float X1, Y1;
 float X2, Y2;
 
+/*
+  Funcion que se realiza las preparaciones previas antes de iniciar 
+  la simulacion (draw)
+*/
 void setup(){
   size(850, 650);
   background(0);
@@ -26,15 +55,20 @@ void setup(){
   Y1 = 100;
   Y2 = height - Y1;
   tiempo = 0;
-  nIndividuos = 25;
-  nInicialDeInfectados = 2;
+  nIndividuos = Consts.NUMERO_INDIVIDUOS;
+  nInicialDeInfectados = Consts.NUMERO_INICIAL_INFECTADOS;
+  preSintomaticos = Consts.NUMERO_INICIAL_INFECTADOS;
+  probSintomatico = Consts.PROBABILIDAD_SINTOMATICO;
+  tiempoDeRecuperacion = Consts.TIEMPO_RECUPERACION;
   susceptibles = nIndividuos - nInicialDeInfectados;
-  preSintomaticos = nInicialDeInfectados;
-  probSintomatico = 0.7;
-  tiempoDeRecuperacion = 14;
   generarNodos();
 }
 
+/*
+  Funcion encargada de dibujar cuadro a cuadro el nuevo estado de los
+  individuos.
+  Cada 4 segundos actualiza el estado de los individuos.
+*/
 void draw(){
   if(frameCount == 1){
     dibujar();
@@ -48,25 +82,39 @@ void draw(){
   }  
 }
 
+
 void generarNodos(){  
   for (int i = 0; i < nIndividuos; i++) {
-    float random = (float) Math.random();//las posiciones de cada empleado son aleatorias
+    
+    // Las posiciones de cada empleado son aleatortias
+    float random = (float) Math.random();
     float posX = map(random, 0.0, 1.0, X1, X2);
     random = (float) Math.random();
     float posY = map(random, 0.0, 1.0, Y1, Y2);  
     Random rand = new Random();
-    int estado = 0; //todos los individuos menos el numero de infectados inicial comienzan como susceptibles
-    int sociabilidad = rand.nextInt(3); //determina el numero de contactos por hora de cada individuo
-    float probContagiar_se = (float) Math.random(); //probabilidad de contagiar o de contagiarse 
+    
+    // Todos los individuos inician con estado de Susceptibles
+    // Excepto el numero de infectados inicial
+    int estado = Consts.SUSCEPTIBLE;
+    
+    // Determina el numero de cointactos por hora de cada individuo
+    int sociabilidad = rand.nextInt(3);
+    
+    // La probabilidad de contagiar o ser cnotagiado
+    float probContagiar_se = (float) Math.random(); 
     Empleado nuevoIndividuo = new Empleado(i, estado, posX, posY, -1, -1, probContagiar_se, sociabilidad);
     individuos.add(nuevoIndividuo);
   }
-  for (int i = 0; i < nInicialDeInfectados; i++) {//se cambia el estado de los infectados iniciales   
-    individuos.get(i).estado = 1;
+  
+  // Se cambia el estado de los infectados iniciales
+  for (int i = 0; i < nInicialDeInfectados; i++) {   
+    individuos.get(i).estado = Consts.PRE_SINTOMATICO;
     Random r = new Random();
-    double desviacionEstandar = 2;
-    double media = 7;
-    double duracionIncubacion = r.nextGaussian()*desviacionEstandar+media; //distribución normal
+    double desviacionEstandar = Consts.DESVIACION_ESTANDAR;
+    double media = Consts.MEDIA;
+    
+    // Distribucion normal
+    double duracionIncubacion = r.nextGaussian() * desviacionEstandar + media;
     individuos.get(i).duracionIncubacion = (int) duracionIncubacion;    
     individuos.get(i).tiempoDeContagio = tiempo;
   }
@@ -87,11 +135,21 @@ void generarNodos(){
   }
 }
 
+
+/*
+  Funcion encargada de simular el numero de contactos basado en el estado actual de 
+  los individuos y su nivel de sociabilidad
+*/
 void simularContactos(){
   contactos = new ArrayList<Contacto>();
   for (int i = 0; i < nIndividuos; i++) {
     Empleado individuoUno = individuos.get(i);
     int contadorContactos = 0;
+    
+    /*
+      El individuo tiene contacto con todos en la empresa un n de veces por hora?
+    */
+    
     while(contadorContactos < getContactosPorHora(individuoUno.sociabilidad)){
       for (int j = i+1; j < nIndividuos; j++) {      
         Empleado individuoDos = individuos.get(j);      
@@ -100,12 +158,20 @@ void simularContactos(){
         float random = (float) Math.random();
         if (random <= probabilidadContacto){
           Random rand = new Random();
-          int duracionDelContacto = rand.nextInt(61) + 1; // 1 - 60 mins 
-          int distanciaDelContacto = rand.nextInt(141) + 10; // 10 - 150 cms 
+          
+          // TODO: Revisar que el tiempo maximo en una hora por contacto es 60 mins/ # contactos
+          
+          // 1 - 60 mins
+          int duracionDelContacto = rand.nextInt(Consts.TIEMPO_MAX + 1) + Consts.TIEMPO_MIN;
+                    
+          //  10 - 150 cms
+          int distanciaDelContacto = rand.nextInt(Consts.DIST_MAX_CONTACTO - 9) + Consts.DIST_MIN_CONTACTO;        
           boolean tipoContacto = getTipoDeContacto(individuoUno, individuoDos); //función para determinar si el contacto es efectivo o no
           Contacto nuevoContacto = new Contacto(individuoUno, individuoDos, tipoContacto, duracionDelContacto, distanciaDelContacto);
           contadorContactos++;
-          if(!(individuoUno.estado == 5 || individuoDos.estado == 5)){//los individuos en cuarentena salen del sistema
+          
+          // Los individuos en cuarentena salen del sistema
+          if(!(individuoUno.estado == Consts.CUARENTENA || individuoDos.estado == Consts.CUARENTENA)){
             contactos.add(nuevoContacto); 
           }               
         }
@@ -114,31 +180,49 @@ void simularContactos(){
   }
 }
 
+/*
+  Funcion que itera sobre los contactos recientes y cambia el estado de los individuos
+  involucrados de acuerdo con el tipo de contacto que hubo (efectivo o no)
+*/
 void simularContagios(){
   for (Contacto contacto : contactos) {
-    if(contacto.tipo){//si es un contacto efectivo (en el que puede contagiarse alguno de los dos individuos)
+    
+    // Si es un contacto efectivo (en el que puede contagiarse uno de los individuos)
+    if(contacto.tipo){
       float random = (float) Math.random();
-      float factorDuracion = map(contacto.duracion,1,60,0.0,1.0);
-      float factorDistancia = map(contacto.distancia,10,150,1.0,0.0);
+      float factorDuracion = map(contacto.duracion,
+                                 Consts.TIEMPO_MIN,
+                                 Consts.TIEMPO_MAX,
+                                 0.0, 1.0);
+      float factorDistancia = map(contacto.distancia,
+                                  Consts.DIST_MIN_CONTACTO,
+                                  Consts.DIST_MAX_CONTACTO,
+                                  1.0, 0.0);
+      
+      // De donde sale esto?
       float factorSuceptibilidad = (contacto.individuoUno.probContagiar_se + contacto.individuoDos.probContagiar_se)/2;
       float probInfeccion = 0.25*factorDuracion + 0.25*factorDistancia + 0.5*factorSuceptibilidad;
       println("probInfeccion:");
       println(probInfeccion);
       println("random:");
       println(random);
-      if (random <= probInfeccion){//se produce un contagio
+      
+      // Se produce un contagio
+      if (random <= probInfeccion){
         Random r = new Random();
         double desviacionEstandar = 2;
         double media = 7;
-        double duracionIncubacion = r.nextGaussian()*desviacionEstandar+media; //distribución normal 
-        if(contacto.individuoUno.estado == 0){
-          contacto.individuoUno.estado = 1;
+        
+        // Distribucion normal
+        double duracionIncubacion = r.nextGaussian() * desviacionEstandar + media; 
+        if(contacto.individuoUno.estado == Consts.SUSCEPTIBLE){
+          contacto.individuoUno.estado = Consts.PRE_SINTOMATICO;
           contacto.individuoUno.tiempoDeContagio = tiempo;
           contacto.individuoUno.duracionIncubacion = (int) duracionIncubacion;
           susceptibles--;
           preSintomaticos++;
-        }else if(contacto.individuoDos.estado == 0){
-          contacto.individuoDos.estado = 1;
+        } else if (contacto.individuoDos.estado == Consts.SUSCEPTIBLE){
+          contacto.individuoDos.estado = Consts.PRE_SINTOMATICO;
           contacto.individuoDos.tiempoDeContagio = tiempo;
           contacto.individuoDos.duracionIncubacion = (int) duracionIncubacion;
           susceptibles--;
@@ -149,33 +233,46 @@ void simularContagios(){
   }
 }
 
+/*
+  
+*/
 void evaluarCambiosDeEstado(){
   for (Empleado individuo : individuos) {    
-    if (individuo.estado == 1){
+    if (individuo.estado == Consts.PRE_SINTOMATICO){
       if (individuo.tiempoDeContagio + individuo.duracionIncubacion == tiempo){
         float random = (float) Math.random();
-        if (random <= probSintomatico){
-          individuo.estado = 2;//Infectado sintomatico
-          individuo.probContagiar_se = constrain(individuo.probContagiar_se*1.5,0.0,1.0); //Al inicio de los sintomas los individuos tienen un 50% mayor prob de contagiar
+        
+        // Infectado sintomatico
+        if (random <= probSintomatico){          
+          individuo.estado = Consts.INF_SINTOMATICO;
+          
+          //Al inicio de los sintomas los individuos tienen un 50% mayor prob de contagiar
+          individuo.probContagiar_se = constrain(individuo.probContagiar_se * 1.5, 0.0, 1.0); 
           preSintomaticos--;
           infectadosSintomaticos++;
         }else{
-          individuo.estado = 3;//Infectado asintomatico
+          
+          // Infectado asintomatico
+          individuo.estado = Consts.INF_ASINTOMATICO;
           preSintomaticos--;
           infectadosAsintomaticos++;
         }
       }
-    }    
-    if (individuo.estado == 2){//Los individuos sintomaticos son puestos en cuarentena al siguiente dia (8 horas despues)
-      if (individuo.tiempoDeContagio + individuo.duracionIncubacion + 8 == tiempo){
-        individuo.estado = 5; //En cuarentena
+    }
+    
+    // Los individuos sintomaticos son puestos en cuarentena al siguiente dia (8 horas despues)
+    if (individuo.estado == Consts.INF_SINTOMATICO){
+      if (individuo.tiempoDeContagio + individuo.duracionIncubacion + Consts.HORAS_REMISION == tiempo){
+        individuo.estado = Consts.CUARENTENA; //En cuarentena
         infectadosSintomaticos--;
         enCuarentena++;
       }
     }
-    if (individuo.estado == 3){
+    if (individuo.estado == Consts.INF_ASINTOMATICO){
       if (individuo.tiempoDeContagio + individuo.duracionIncubacion + tiempoDeRecuperacion == tiempo){
-        individuo.estado = 4; //Recuperado asintomatico
+        
+        // Recuperado asintomatico
+        individuo.estado = Consts.REC_ASINTOMATICO; 
         infectadosAsintomaticos--;
         recuperadosAsintomaticos++;
       }
@@ -183,7 +280,15 @@ void evaluarCambiosDeEstado(){
   }  
 }
 
-int getContactosPorHora(int sociabilidad){ //generador para una distribución de poisson para el numero de contactos por hora de cada empleado
+/*
+  Funcion que genera con una distribucion de Poisson el numero 
+  de contactos que un individuo
+  
+  @param sociabilidad - El grado de sociabilidad que el individuo tiene
+  
+  returns numero de contactos
+*/
+int getContactosPorHora(int sociabilidad){
   int lambda = sociabilidad;
   Random r = new Random();
   double L = Math.exp(-lambda);
@@ -196,18 +301,38 @@ int getContactosPorHora(int sociabilidad){ //generador para una distribución de
   return k - 1;
 }
 
+/*
+  Funcion que determina si el contacto entre dos individuos es efectivo o no
+  dependiendo del estado entre los dos.  
+  @param individuoUno
+  @param individuoDos
+  
+  returns boolean
+*/
 boolean getTipoDeContacto(Empleado individuoUno, Empleado individuoDos){
-  boolean tipoDeContacto;
-  if((individuoUno.estado == 0 || individuoDos.estado == 0) && ( ((individuoUno.estado == 1 || individuoDos.estado == 1)) 
-      || ((individuoUno.estado == 2 || individuoDos.estado == 2)) || ((individuoUno.estado == 3 || individuoDos.estado == 3)) )){
-     tipoDeContacto = true; 
-  }
-  else{
-    tipoDeContacto = false;
+  boolean tipoDeContacto = false;
+  int estadoUno = individuoUno.estado;
+  int estadoDos = individuoDos.estado;  
+  if( (estadoUno == 0 && esInfectado(estadoDos)) || (estadoDos == 0 && esInfectado(estadoUno)) ) {
+    tipoDeContacto = true;
   }
   return tipoDeContacto;
 }
 
+/*
+  Funcion que dado el estado de un individuo, determina si esta infectado o no. 
+  @param - estado: Estado de un individuo
+  
+  returns boolean
+*/
+private boolean esInfectado(int estado) {
+  return estado > Consts.SUSCEPTIBLE && estado < Consts.INF_ASINTOMATICO;
+}
+
+
+/*
+  Funcion principal que se encarga de dibujar el nuevo estado de la simulacion 
+*/
 void dibujar(){
   background(0);
   pushStyle();
@@ -253,23 +378,29 @@ void dibujar(){
     color colorNodo;
     String etiquetaEstado;
     switch (individuo.estado) {
-      case 0:  {colorNodo = color(0, 255, 0);
-                etiquetaEstado = "S";}
+      case Consts.SUSCEPTIBLE:
+               {colorNodo = color(0, 255, 0);
+               etiquetaEstado = "S";}
                break;
-      case 1:  {colorNodo = color(255, 50, 0);
-                etiquetaEstado = "Ip";}
+      case Consts.PRE_SINTOMATICO:
+               {colorNodo = color(255, 50, 0);
+               etiquetaEstado = "Ip";}
                break;
-      case 2:  {colorNodo = color(255, 0, 247);
-                etiquetaEstado = "Is";}
+      case Consts.INF_SINTOMATICO:
+               {colorNodo = color(255, 0, 247);
+               etiquetaEstado = "Is";}
                break;
-      case 3:  {colorNodo = color(141, 30, 131);        
-                etiquetaEstado = "Ia";}
+      case Consts.INF_ASINTOMATICO:
+               {colorNodo = color(141, 30, 131);        
+               etiquetaEstado = "Ia";}
                break;
-      case 4:  {colorNodo = color(255, 255, 255);        
-                etiquetaEstado = "Ra";}
+      case Consts.REC_ASINTOMATICO:
+               {colorNodo = color(255, 255, 255);        
+               etiquetaEstado = "Ra";}
                break;
-      case 5:  {colorNodo = color(220, 255, 0);        
-                etiquetaEstado = "C";}
+      case Consts.CUARENTENA:
+               {colorNodo = color(220, 255, 0);        
+               etiquetaEstado = "C";}
                break;
       default: {colorNodo = color(4, 248, 252);
                 etiquetaEstado = "S";}
