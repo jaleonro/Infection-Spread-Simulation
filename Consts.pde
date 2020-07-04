@@ -33,15 +33,17 @@ public final class Consts {
   
   public static final double DESVIACION_ESTANDAR = 2;
   
+  public static final int HORAS_REMISION = 8;
+  
+  // Valores de tiempo en minutos
   public static final int TIEMPO_MAX = 60;
   
   public static final int TIEMPO_MIN = 1;
   
+  // Valores de distancia en centimetros
   public static final int DIST_MAX_CONTACTO = 150;
   
   public static final int DIST_MIN_CONTACTO = 10;
-  
-  public static final int HORAS_REMISION = 8;
-  
+   
   
 }

@@ -69,6 +69,8 @@ void setup(){
   individuos.
   Cada 4 segundos actualiza el estado de los individuos.
 */
+
+// TODO: Mejorar escala de tiempo a dias, no horas
 void draw(){
   if(frameCount == 1){
     dibujar();
@@ -108,7 +110,7 @@ void generarNodos(){
   
   // Se cambia el estado de los infectados iniciales
   for (int i = 0; i < nInicialDeInfectados; i++) {   
-    individuos.get(i).estado = Consts.PRE_SINTOMATICO;
+    individuos.get(i).setEstado(Consts.PRE_SINTOMATICO);
     Random r = new Random();
     double desviacionEstandar = Consts.DESVIACION_ESTANDAR;
     double media = Consts.MEDIA;
@@ -171,7 +173,7 @@ void simularContactos(){
           contadorContactos++;
           
           // Los individuos en cuarentena salen del sistema
-          if(!(individuoUno.estado == Consts.CUARENTENA || individuoDos.estado == Consts.CUARENTENA)){
+          if(!(individuoUno.enCuarentena() || individuoDos.enCuarentena())){
             contactos.add(nuevoContacto); 
           }               
         }
@@ -210,19 +212,19 @@ void simularContagios(){
       // Se produce un contagio
       if (random <= probInfeccion){
         Random r = new Random();
-        double desviacionEstandar = 2;
-        double media = 7;
+        double desviacionEstandar = Consts.DESVIACION_ESTANDAR;
+        double media = Consts.MEDIA;
         
         // Distribucion normal
         double duracionIncubacion = r.nextGaussian() * desviacionEstandar + media; 
-        if(contacto.individuoUno.estado == Consts.SUSCEPTIBLE){
-          contacto.individuoUno.estado = Consts.PRE_SINTOMATICO;
+        if(contacto.individuoUno.esSusceptible()){
+          contacto.individuoUno.setEstado(Consts.PRE_SINTOMATICO);
           contacto.individuoUno.tiempoDeContagio = tiempo;
           contacto.individuoUno.duracionIncubacion = (int) duracionIncubacion;
           susceptibles--;
           preSintomaticos++;
-        } else if (contacto.individuoDos.estado == Consts.SUSCEPTIBLE){
-          contacto.individuoDos.estado = Consts.PRE_SINTOMATICO;
+        } else if (contacto.individuoDos.esSusceptible()){
+          contacto.individuoDos.setEstado(Consts.PRE_SINTOMATICO);
           contacto.individuoDos.tiempoDeContagio = tiempo;
           contacto.individuoDos.duracionIncubacion = (int) duracionIncubacion;
           susceptibles--;
@@ -238,13 +240,13 @@ void simularContagios(){
 */
 void evaluarCambiosDeEstado(){
   for (Empleado individuo : individuos) {    
-    if (individuo.estado == Consts.PRE_SINTOMATICO){
+    if (individuo.esPreSintomatico()){
       if (individuo.tiempoDeContagio + individuo.duracionIncubacion == tiempo){
         float random = (float) Math.random();
         
         // Infectado sintomatico
         if (random <= probSintomatico){          
-          individuo.estado = Consts.INF_SINTOMATICO;
+          individuo.setEstado(Consts.INF_SINTOMATICO);
           
           //Al inicio de los sintomas los individuos tienen un 50% mayor prob de contagiar
           individuo.probContagiar_se = constrain(individuo.probContagiar_se * 1.5, 0.0, 1.0); 
@@ -253,7 +255,7 @@ void evaluarCambiosDeEstado(){
         }else{
           
           // Infectado asintomatico
-          individuo.estado = Consts.INF_ASINTOMATICO;
+          individuo.setEstado(Consts.INF_ASINTOMATICO);
           preSintomaticos--;
           infectadosAsintomaticos++;
         }
@@ -261,18 +263,18 @@ void evaluarCambiosDeEstado(){
     }
     
     // Los individuos sintomaticos son puestos en cuarentena al siguiente dia (8 horas despues)
-    if (individuo.estado == Consts.INF_SINTOMATICO){
+    if (individuo.esInfSintomatico()){
       if (individuo.tiempoDeContagio + individuo.duracionIncubacion + Consts.HORAS_REMISION == tiempo){
-        individuo.estado = Consts.CUARENTENA; //En cuarentena
+        individuo.setEstado(Consts.CUARENTENA); //En cuarentena
         infectadosSintomaticos--;
         enCuarentena++;
       }
     }
-    if (individuo.estado == Consts.INF_ASINTOMATICO){
+    if (individuo.esInfAsintomatico()){
       if (individuo.tiempoDeContagio + individuo.duracionIncubacion + tiempoDeRecuperacion == tiempo){
         
         // Recuperado asintomatico
-        individuo.estado = Consts.REC_ASINTOMATICO; 
+        individuo.setEstado(Consts.REC_ASINTOMATICO); 
         infectadosAsintomaticos--;
         recuperadosAsintomaticos++;
       }
@@ -311,24 +313,12 @@ int getContactosPorHora(int sociabilidad){
 */
 boolean getTipoDeContacto(Empleado individuoUno, Empleado individuoDos){
   boolean tipoDeContacto = false;
-  int estadoUno = individuoUno.estado;
-  int estadoDos = individuoDos.estado;  
-  if( (estadoUno == 0 && esInfectado(estadoDos)) || (estadoDos == 0 && esInfectado(estadoUno)) ) {
+  if( (individuoUno.esSusceptible() && individuoDos.esInfectado()) ||
+      (individuoDos.esSusceptible() && individuoUno.esInfectado()) ) {
     tipoDeContacto = true;
   }
   return tipoDeContacto;
 }
-
-/*
-  Funcion que dado el estado de un individuo, determina si esta infectado o no. 
-  @param - estado: Estado de un individuo
-  
-  returns boolean
-*/
-private boolean esInfectado(int estado) {
-  return estado > Consts.SUSCEPTIBLE && estado < Consts.INF_ASINTOMATICO;
-}
-
 
 /*
   Funcion principal que se encarga de dibujar el nuevo estado de la simulacion 
@@ -377,7 +367,7 @@ void dibujar(){
   for (Empleado individuo : individuos) {
     color colorNodo;
     String etiquetaEstado;
-    switch (individuo.estado) {
+    switch (individuo.getEstado()) {
       case Consts.SUSCEPTIBLE:
                {colorNodo = color(0, 255, 0);
                etiquetaEstado = "S";}
