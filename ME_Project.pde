@@ -336,11 +336,11 @@ void dibujar(){
   textAlign(LEFT);
   textSize(20);
   text("Susceptibles: "+ susceptibles, 5+60, 60);
-  text("Inf Presintomaticos: "+ preSintomaticos, 110+70, 60);
-  text("Inf sintomaticos: "+ infectadosSintomaticos, 238+80, 60);
-  text("Inf asintomaticos: "+ infectadosAsintomaticos, 403+70, 60);
+  text("inf. Presintomaticos: "+ preSintomaticos, 110+70, 60);
+  text("inf. sintomaticos: "+ infectadosSintomaticos, 238+100, 60);
+  text("inf. asintomaticos: "+ infectadosAsintomaticos, 403+70, 60);
   text("En cuarentena: "+ enCuarentena, 575+60, 60);
-  text("Recuperados: "+ recuperadosAsintomaticos, 685+60, 60);
+  text("Recuperados: "+ recuperadosAsintomaticos, 685+80, 60);
   popStyle(); 
   pushStyle();
   strokeWeight(3);
