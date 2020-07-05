@@ -41,11 +41,11 @@ float X1, Y1;
 float X2, Y2;
 
 /*
-  Funcion que se realiza las preparaciones previas antes de iniciar 
+  Funcion que realiza las preparaciones previas antes de iniciar 
   la simulacion (draw)
 */
 void setup(){
-  size(850, 650);
+  size(950, 650);
   background(0);
   frameRate(1);
   PFont font = loadFont("AgencyFB-Reg-14.vlw");
@@ -75,7 +75,7 @@ void draw(){
   if(frameCount == 1){
     dibujar();
   }
-  if(frameCount%4==0){ 
+  if(frameCount%2==0 ||frameCount%2==1){ 
     tiempo++;
     simularContactos();
     dibujar();
@@ -102,7 +102,7 @@ void generarNodos(){
     // Determina el numero de cointactos por hora de cada individuo
     int sociabilidad = rand.nextInt(3);
     
-    // La probabilidad de contagiar o ser cnotagiado
+    // La probabilidad de contagiar o ser contagiado
     float probContagiar_se = (float) Math.random(); 
     Empleado nuevoIndividuo = new Empleado(i, estado, posX, posY, -1, -1, probContagiar_se, sociabilidad);
     individuos.add(nuevoIndividuo);
@@ -335,12 +335,12 @@ void dibujar(){
   fill(104,151,252);
   textAlign(LEFT);
   textSize(20);
-  text("Susceptibles: "+ susceptibles, 5+30, 60);
-  text("Pre-sintomaticos: "+ preSintomaticos, 110+30, 60);
-  text("Infectados sintomaticos: "+ infectadosSintomaticos, 238+30, 60);
-  text("Infectados asintomaticos: "+ infectadosAsintomaticos, 403+30, 60);
-  text("En cuarentena: "+ enCuarentena, 575+30, 60);
-  text("Recuperados: "+ recuperadosAsintomaticos, 685+30, 60);
+  text("Susceptibles: "+ susceptibles, 5+60, 60);
+  text("Inf Presintomaticos: "+ preSintomaticos, 110+70, 60);
+  text("Inf sintomaticos: "+ infectadosSintomaticos, 238+80, 60);
+  text("Inf asintomaticos: "+ infectadosAsintomaticos, 403+70, 60);
+  text("En cuarentena: "+ enCuarentena, 575+60, 60);
+  text("Recuperados: "+ recuperadosAsintomaticos, 685+60, 60);
   popStyle(); 
   pushStyle();
   strokeWeight(3);
@@ -374,15 +374,15 @@ void dibujar(){
                break;
       case Consts.PRE_SINTOMATICO:
                {colorNodo = color(255, 50, 0);
-               etiquetaEstado = "Ip";}
+               etiquetaEstado = "ip";}
                break;
       case Consts.INF_SINTOMATICO:
                {colorNodo = color(255, 0, 247);
-               etiquetaEstado = "Is";}
+               etiquetaEstado = "is";}
                break;
       case Consts.INF_ASINTOMATICO:
                {colorNodo = color(141, 30, 131);        
-               etiquetaEstado = "Ia";}
+               etiquetaEstado = "ia";}
                break;
       case Consts.REC_ASINTOMATICO:
                {colorNodo = color(255, 255, 255);        

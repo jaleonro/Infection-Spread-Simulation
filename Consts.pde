@@ -25,11 +25,11 @@ public final class Consts {
   
   public static final int NUMERO_INICIAL_INFECTADOS = 2;
   
-  public static final int TIEMPO_RECUPERACION = 14;
+  public static final int TIEMPO_RECUPERACION = 120;// val 2 ==> 120
   
   public static final float PROBABILIDAD_SINTOMATICO = 0.7;
   
-  public static final double MEDIA = 7;
+  public static final double MEDIA = 40 ;// val 2 ==> 14
   
   public static final double DESVIACION_ESTANDAR = 2;
   
