@@ -31,7 +31,7 @@ public final class Consts {
   
   public static final int TIEMPO_RECUPERACION = 14;
   
-  public static final float PROBABILIDAD_SINTOMATICO = 0.7;
+  public static final float PROBABILIDAD_SINTOMATICO = 0.5;
   
   public static final float PROBABILIDAD_RECUPERACION = 0.98;
   
@@ -39,7 +39,7 @@ public final class Consts {
   
   public static final double DESVIACION_ESTANDAR = 2;
   
-  public static final int DIAS_REMISION = 1;
+  public static final int DIAS_REMISION = 2;
   
   // Valores de tiempo en minutos
   public static final int TIEMPO_MAX = 240;
