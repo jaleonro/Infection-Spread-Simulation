@@ -10,7 +10,10 @@ class Empleado{
     1 - Infectado pre-sintomatico
     2 - Infectado sintomatico
     3 - Infectado asintomatico
-    4 - En Cuarentena
+    4 - Recuperado asintomatico
+    5 - En cuarentena
+    6 - Recuperado sintomatico
+    7 - Fallecido
 */  
   private int estado;
   Float posX;               // Posicion x en la pantalla
@@ -19,8 +22,9 @@ class Empleado{
   int duracionIncubacion;
   Float probContagiar_se;   // Probabilidad de contagiar o ser contagiado (Valor entre 0 y 1)
   int sociabilidad;
+  int duracionEnfermedad;
   
-  public Empleado(int id, int estado, Float posX, Float posY, int tiempoDeContagio, int duracionIncubacion, Float probContagiar_se, int sociabilidad){
+  public Empleado(int id, int estado, Float posX, Float posY, int tiempoDeContagio, int duracionIncubacion, Float probContagiar_se, int sociabilidad, int duracionEnfermedad){
     this.id = id;
     this.estado = estado;
     this.posX = posX;
@@ -29,6 +33,7 @@ class Empleado{
     this.duracionIncubacion = duracionIncubacion;
     this.probContagiar_se = probContagiar_se;
     this.sociabilidad = sociabilidad;
+    this.duracionEnfermedad = duracionEnfermedad;
   }
   
   public void setEstado(int estado ) {
@@ -71,5 +76,9 @@ class Empleado{
   
   public boolean esRecAsintomatico() {
     return this.estado == Consts.REC_ASINTOMATICO;
+  } 
+  
+  public boolean fallecio() {
+    return this.estado == Consts.MUERTO;
   } 
 }
